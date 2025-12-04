@@ -2,7 +2,7 @@
 
 string myUniqueId = HardwareIdGenerator.GetUniqueHardwareId();
 
-Console.WriteLine("Kompyuterning Hardware IDsi:");
+Console.WriteLine("Hardware ID:");
 Console.WriteLine(myUniqueId);
 
 // example: 
