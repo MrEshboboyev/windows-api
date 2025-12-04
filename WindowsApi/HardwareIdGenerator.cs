@@ -14,9 +14,43 @@ public static class HardwareIdGenerator
         // optional: add disk serial number
         // string diskId = GetWmiProperty("Win32_DiskDrive", "SerialNumber");
 
-        string rawId = $"{cpuId}-{biosId}-{baseBoardId}";
+        string tpmManufacturerId = GetTpmProperty("ManufacturerID");
+
+        string tpmVersion = GetTpmProperty("ManufacturerVersion"); 
+
+        string rawId = $"{cpuId}-{biosId}-{baseBoardId}-{tpmManufacturerId}-{tpmVersion}";
 
         return GetHash(rawId);
+    }
+
+    private static string GetTpmProperty(string propertyName)
+    {
+        string result = "";
+        try
+        {
+            ManagementObjectSearcher searcher = new($"SELECT {propertyName} FROM Win32_Tpm");
+            foreach (ManagementObject obj in searcher.Get())
+            {
+                var value = obj[propertyName];
+                if (value != null)
+                {
+                    if (value is byte[] bytes)
+                    {
+                        result = Convert.ToHexString(bytes);
+                    }
+                    else
+                    {
+                        result = value.ToString();
+                    }
+                    break;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            return "TPM_NOT_AVAILABLE";
+        }
+        return string.IsNullOrEmpty(result) ? "TPM_NOT_AVAILABLE" : result;
     }
 
     private static string GetWmiProperty(string className, string propertyName)
